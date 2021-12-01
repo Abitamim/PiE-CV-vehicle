@@ -1,11 +1,11 @@
 import cv2
 import numpy as np
 from math import sqrt
-from queue import Queue
+from collections import deque
 class MovingAvg:
 
     def __init__(self, max_vals = 10, threshold = .1):
-        self.values = []
+        self.values = deque()
         self.max_vals = max_vals
         self.avg = 0.0
         self.sum = 0
@@ -15,7 +15,7 @@ class MovingAvg:
         if len(self.values) == self.max_vals:
             if not self.withinBounds(val):
                 return
-            self.sum -= self.values.pop(0)
+            self.sum -= self.values.popleft()
         
         self.values.append(val)
         self.sum += val
@@ -37,15 +37,16 @@ class MovingAvg:
 vid = cv2.VideoCapture(0)
 
 
-mean_area = MovingAvg(10, .2)
-mean_center_x = MovingAvg(10, .2)
-mean_center_y = MovingAvg(10, .2)
+mean_area = MovingAvg(10, .5)
+mean_center_x = MovingAvg(10, .5)
+mean_center_y = MovingAvg(10, .5)
 
 while(True):
       
     # Capture the video frame
     # by frame
     ret, img = vid.read()
+    img_copy = img.copy()
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange (hsv, (0, 150, 100), (50, 255, 255))
     contours,_ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
@@ -69,15 +70,19 @@ while(True):
         mean_center_y.push(center_y)
         if mean_area.full() and mean_center_x.full() and mean_center_y.full():
             side_length_half = sqrt(mean_area.average()) / 2
-            top_left = (mean_center_x.avg - side_length_half, mean_center_y.avg - side_length_half)
-            bottom_right = (mean_center_x.avg + side_length_half, mean_center_y.avg + side_length_half + 15)
+            top_left = (int(mean_center_x.avg - side_length_half), int(mean_center_y.avg - side_length_half))
+            bottom_right = (int(mean_center_x.avg + side_length_half), int(mean_center_y.avg + side_length_half + 15))
             #drawing a rectangle around the object with 15 as margin
             cv2.rectangle(img, (x_min - 15, y_min - 15),
                             (x_min + box_width + 15, y_min + box_height + 15),
                             (0,255,0), 4)
+            cv2.rectangle(img_copy, top_left,
+                bottom_right,
+                (0,255,0), 4)
 
     # Display the resulting frame
-    cv2.imshow('frame', img)
+    cv2.imshow('unfiltered', img)
+    cv2.imshow('filtered', img_copy)
     #cv2.imshow('hsv', hsv)
     cv2.imshow('mask', mask)
 
