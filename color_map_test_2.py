@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from math import sqrt
 from collections import deque
+import copy
 class MovingAvg:
 
     def __init__(self, max_vals = 10, threshold = .1):
@@ -46,7 +47,8 @@ while(True):
     # Capture the video frame
     # by frame
     ret, img = vid.read()
-    img_copy = img.copy()
+    img_copy = copy.deepcopy(img)
+
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange (hsv, (0, 150, 100), (50, 255, 255))
     contours,_ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
@@ -68,6 +70,16 @@ while(True):
         mean_center_x.push(center_x)
         # while not mean_center_y.full():
         mean_center_y.push(center_y)
+
+        x_offset = mean_center_x.avg() - 240
+        center_offset_x = abs(x_offset)
+        if x_offset < 0:
+            direction = -1
+        if x_offset > 0:
+            direction = 1
+        angle = 5 * (center_offset_x/(1 + center_offset_x))
+        print(angle, direction)
+
         if mean_area.full() and mean_center_x.full() and mean_center_y.full():
             side_length_half = sqrt(mean_area.average()) / 2
             top_left = (int(mean_center_x.avg - side_length_half), int(mean_center_y.avg - side_length_half))
