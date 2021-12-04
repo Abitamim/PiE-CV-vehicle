@@ -1,44 +1,13 @@
 import cv2
-import numpy as np
 from math import sqrt
-from collections import deque
 import copy
-class MovingAvg:
-
-    def __init__(self, max_vals = 10, threshold = .1):
-        self.values = deque()
-        self.max_vals = max_vals
-        self.avg = 0.0
-        self.sum = 0
-        self.threshold = threshold
-        
-    def push(self, val):
-        if len(self.values) == self.max_vals:
-            if not self.withinBounds(val):
-                return
-            self.sum -= self.values.popleft()
-        
-        self.values.append(val)
-        self.sum += val
-        if len(self.values) > 0:
-            self.avg = self.sum / len(self.values)
-
-        return self.avg
-
-    def average(self):
-        return self.avg
-    
-    def full(self):
-        return len(self.values) == self.max_vals
-
-    def withinBounds(self, val):
-        return self.avg * (1 + self.threshold) >= val and self.avg * (1 - self.threshold) <= val
+from moving_average import MovingAvg
 
 # define a video capture object
 vid = cv2.VideoCapture(0)
 
 
-mean_area = MovingAvg(10, .5)
+mean_area = MovingAvg(10, 20)
 mean_center_x = MovingAvg(10, .5)
 mean_center_y = MovingAvg(10, .5)
 
@@ -71,7 +40,7 @@ while(True):
         # while not mean_center_y.full():
         mean_center_y.push(center_y)
 
-        x_offset = mean_center_x.avg() - 240
+        x_offset = mean_center_x.avg - 240
         center_offset_x = abs(x_offset)
         if x_offset < 0:
             direction = -1
@@ -81,7 +50,7 @@ while(True):
         print(angle, direction)
 
         if mean_area.full() and mean_center_x.full() and mean_center_y.full():
-            side_length_half = sqrt(mean_area.average()) / 2
+            side_length_half = sqrt(mean_area.avg) / 2
             top_left = (int(mean_center_x.avg - side_length_half), int(mean_center_y.avg - side_length_half))
             bottom_right = (int(mean_center_x.avg + side_length_half), int(mean_center_y.avg + side_length_half + 15))
             #drawing a rectangle around the object with 15 as margin
