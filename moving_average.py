@@ -37,4 +37,5 @@ class MovingAvg:
         return len(self.values) == self.max_vals
 
     def withinBounds(self, val):
+        return True
         return self.avg * (1 + self.threshold) >= val and self.avg * (1 - self.threshold) <= val
