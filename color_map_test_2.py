@@ -2,7 +2,10 @@ import cv2
 from math import sqrt
 import copy
 from moving_average import MovingAvg
+from serial_device import SerialDevice
+from time import sleep, time
 
+arduino = SerialDevice()
 # define a video capture object
 vid = cv2.VideoCapture(0)
 
@@ -10,9 +13,8 @@ vid = cv2.VideoCapture(0)
 mean_area = MovingAvg(10, 20)
 mean_center_x = MovingAvg(10, .5)
 mean_center_y = MovingAvg(10, .5)
-
+prev_time = time()
 while(True):
-      
     # Capture the video frame
     # by frame
     ret, img = vid.read()
@@ -40,18 +42,32 @@ while(True):
         # while not mean_center_y.full():
         mean_center_y.push(center_y)
 
-        x_offset = mean_center_x.avg - 240
+        x_offset = mean_center_x.avg - 320
         center_offset_x = abs(x_offset)
-        if x_offset < 0:
-            direction = -1
-        if x_offset > 0:
-            direction = 1
+        turn_direction = 1 if x_offset > 0 else -1
         angle = 5 * (center_offset_x/(1 + center_offset_x))
-        print(angle, direction)
+        # print(angle, direction)
+
+        target_area = 240 * 360
+        area_offset = mean_area.avg - target_area
+        direction = "forward" if area_offset < 0 else "stay"
+        
+        if time() - prev_time > 3:
+            prev_time = time()
+            print(direction)
+            arduino.write(direction)
+        
+
+        if arduino.ser.in_waiting:
+            line = arduino.read()
+            if line.strip() != '':
+                print("Arduino thing: {}".format(line))
+
+        print()
 
         if mean_area.full() and mean_center_x.full() and mean_center_y.full():
             side_length_half = sqrt(mean_area.avg) / 2
-            top_left = (int(mean_center_x.avg - side_length_half), int(mean_center_y.avg - side_length_half))
+            top_left  = (int(mean_center_x.avg - side_length_half), int(mean_center_y.avg - side_length_half))
             bottom_right = (int(mean_center_x.avg + side_length_half), int(mean_center_y.avg + side_length_half + 15))
             #drawing a rectangle around the object with 15 as margin
             cv2.rectangle(img, (x_min - 15, y_min - 15),

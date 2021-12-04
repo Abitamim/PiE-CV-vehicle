@@ -89,7 +89,7 @@ class SerialDevice:
             string (str): data to send over the serial port.
         '''
         if self.connected:
-            self.ser.write('{}\r\n'.format(string).encode())
+            self.ser.write('{}\r'.format(string).encode())
 
 
 def print_port_info(port: ListPortInfo) -> None:
