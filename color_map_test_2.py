@@ -50,7 +50,17 @@ while(True):
 
         target_area = 240 * 360
         area_offset = mean_area.avg - target_area
-        direction = "forward" if area_offset < 0 else "stay"
+        
+        if area_offset < 0 and turn_direction <= 0 and angle <= 2:
+            direction = "forward" 
+        elif area_offset < 0 and turn_direction <= 0 and angle > 2:
+            direction = "left"
+        elif area_offset < 0 and turn_direction > 0 and angle <= 2:
+            direction = "forward"
+        elif area_offset < 0 and turn_direction > 0 and angle > 2:
+            direction = "right"
+        else:
+            direction = "stay"
         
         if time() - prev_time > 3:
             prev_time = time()
