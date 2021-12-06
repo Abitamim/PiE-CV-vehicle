@@ -45,26 +45,25 @@ while(True):
         x_offset = mean_center_x.avg - 320
         center_offset_x = abs(x_offset)
         turn_direction = 1 if x_offset > 0 else -1
-        angle = 5 * (center_offset_x/(1 + center_offset_x))
+        angle = center_offset_x/320
         # print(angle, direction)
 
         target_area = 240 * 360
         area_offset = mean_area.avg - target_area
         
-        if area_offset < 0 and turn_direction <= 0 and angle <= 2:
-            direction = "forward" 
-        elif area_offset < 0 and turn_direction <= 0 and angle > 2:
-            direction = "left"
-        elif area_offset < 0 and turn_direction > 0 and angle <= 2:
-            direction = "forward"
-        elif area_offset < 0 and turn_direction > 0 and angle > 2:
-            direction = "right"
+        if area_offset < 0:
+            if turn_direction <= 0:
+                direction = "forward" if angle <= .2 else "left"
+            else:
+                direction = "forward" if angle <= .2 else "right"
         else:
             direction = "stay"
         
         if time() - prev_time > 3:
             prev_time = time()
             print(direction)
+            print("Angle {}: ".format(angle))
+            print(turn_direction)
             arduino.write(direction)
         
 
