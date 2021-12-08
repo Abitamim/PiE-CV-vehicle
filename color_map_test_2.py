@@ -18,6 +18,11 @@ while(True):
     # Capture the video frame
     # by frame
     ret, img = vid.read()
+
+    scale_percent = .3
+    width = int(img.shape[1] * scale_percent)
+    height = int(img.shape[0] * scale_percent)
+    img = cv2.resize(img, (width, height))
     img_copy = copy.deepcopy(img)
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -42,13 +47,13 @@ while(True):
         # while not mean_center_y.full():
         mean_center_y.push(center_y)
 
-        x_offset = mean_center_x.avg - 320
+        x_offset = mean_center_x.avg - (width // 2)
         center_offset_x = abs(x_offset)
         turn_direction = 1 if x_offset > 0 else -1
         angle = center_offset_x/320
         # print(angle, direction)
 
-        target_area = 240 * 360
+        target_area = (width // 2) * (height // 2)
         area_offset = mean_area.avg - target_area
         
         if area_offset < 0:
@@ -67,10 +72,10 @@ while(True):
             arduino.write(direction)
         
 
-        if arduino.ser.in_waiting:
-            line = arduino.read()
-            if line.strip() != '':
-                print("Arduino thing: {}".format(line))
+        # if arduino.ser.in_waiting:
+        #     line = arduino.read()
+        #     if line.strip() != '':
+        #         print("Arduino thing: {}".format(line))
 
         print()
 
