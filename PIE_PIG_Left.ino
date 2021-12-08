@@ -3,10 +3,10 @@
 // pin assignments
 
 const int LED_PIN = 13;
-const int Left_MOTOR_STEP_PIN = 2;
-const int Left_MOTOR_DIRECTION_PIN = 5;
-const int Right_MOTOR_STEP_PIN = 3;
-const int Right_MOTOR_DIRECTION_PIN = 6;
+const int LEFT_MOTOR_STEP_PIN = 2;
+const int LEFT_MOTOR_DIRECTION_PIN = 5;
+const int RIGHT_MOTOR_STEP_PIN = 3;
+const int RIGHT_MOTOR_DIRECTION_PIN = 6;
 const int STEPPERS_ENABLE_PIN = 8;
 
 SpeedyStepper stepperLeft;
@@ -30,8 +30,8 @@ void setup() {
   digitalWrite(STEPPERS_ENABLE_PIN, LOW);
   
   // connect and configure the stepper motors to their IO pins
-  stepperLeft.connectToPins(Left_MOTOR_STEP_PIN, Left_MOTOR_DIRECTION_PIN);
-  stepperRight.connectToPins(Right_MOTOR_STEP_PIN, Right_MOTOR_DIRECTION_PIN);
+  stepperLeft.connectToPins(LEFT_MOTOR_STEP_PIN, LEFT_MOTOR_DIRECTION_PIN);
+  stepperRight.connectToPins(RIGHT_MOTOR_STEP_PIN, RIGHT_MOTOR_DIRECTION_PIN);
 }
 
 void loop() {
@@ -71,20 +71,35 @@ void loop() {
 
 void moveRobot(String dir) {
 //  Serial.println(dir);
-  if (dir == "forward")
+  if (dir == "forward"){
+      forward(1);
+  }
+  else if (dir == "left"){
+      left(1);
+  }
+  else if (dir == "right"){
       right(1);
-  
+  }
 }
 
 void left(float turnAmount){
-  stepperRight.moveRelativeInSteps(200*turnAmount*turnConstant*leftMotorAdjust);
+  stepperRight.moveRelativeInSteps(-200*turnAmount*turnConstant*leftMotorAdjust);
 }
 void right(float turnAmount){
   stepperLeft.moveRelativeInSteps(200*turnAmount*turnConstant*rightMotorAdjust);
 }
 void forward(int rotations){
-  stepperLeft.setupMoveInSteps(200*leftMotorAdjust*rotations);
-  stepperRight.setupMoveInSteps(200*rightMotorAdjust*rotations);
+  stepperLeft.setSpeedInStepsPerSecond(100);
+  stepperLeft.setAccelerationInStepsPerSecondPerSecond(100);
+  stepperLeft.setupRelativeMoveInSteps(200*rotations);
+
+
+  //
+  // setup the motion for the Y motor
+  //
+  stepperRight.setSpeedInStepsPerSecond(100);
+  stepperRight.setAccelerationInStepsPerSecondPerSecond(100);
+  stepperRight.setupRelativeMoveInSteps(-200*rotations);
 
   while(!stepperLeft.motionComplete())
   {
