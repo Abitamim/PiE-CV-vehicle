@@ -72,7 +72,7 @@ void loop() {
 void moveRobot(String dir) {
 //  Serial.println(dir);
   if (dir == "forward"){
-      forward(1.5);
+      forward(1);
   }
   else if (dir == "left"){
       left(.3);
@@ -83,19 +83,27 @@ void moveRobot(String dir) {
 }
 
 void left(double rotations){
-  stepperLeft.setSpeedInStepsPerSecond(100);
-  stepperLeft.setAccelerationInStepsPerSecondPerSecond(100);
-  stepperLeft.setupRelativeMoveInSteps(int(-200*rotations));
+  int steps = int(200*rotations);
+  int rightSteps = steps * .5;
+  int leftSteps = steps * 1.5;
+  float scaler = (float) leftSteps / (float) rightSteps;
+  float speedLeft = 100 * scaler;
+  float accelerationLeft = 100 * scaler;
+  float speedRight = 100 / scaler;
+  float accelerationRight = 100 / scaler;
+  stepperLeft.setSpeedInStepsPerSecond(speedLeft);
+  stepperLeft.setAccelerationInStepsPerSecondPerSecond(speedRight);
+  stepperLeft.setupRelativeMoveInSteps(leftSteps);
 
 
   //
   // setup the motion for the Y motor
   //
-  stepperRight.setSpeedInStepsPerSecond(100);
-  stepperRight.setAccelerationInStepsPerSecondPerSecond(100);
-  stepperRight.setupRelativeMoveInSteps(int(-200*rotations));
+  stepperRight.setSpeedInStepsPerSecond(speedRight);
+  stepperRight.setAccelerationInStepsPerSecondPerSecond(accelerationRight);
+  stepperRight.setupRelativeMoveInSteps(-rightSteps);
 
-  while(!stepperLeft.motionComplete())
+  while(!stepperLeft.motionComplete() && !stepperRight.motionComplete())
   {
     stepperLeft.processMovement();       // this call moves the motor
     stepperRight.processMovement();
@@ -107,19 +115,27 @@ void left(double rotations){
   }
 }
 void right(double rotations){
-  stepperLeft.setSpeedInStepsPerSecond(100);
-  stepperLeft.setAccelerationInStepsPerSecondPerSecond(100);
-  stepperLeft.setupRelativeMoveInSteps(int(200*rotations));
+  int steps = int(200*rotations);
+  int rightSteps = steps * 1.5;
+  int leftSteps = steps * .5;
+  float scaler = (float) leftSteps / (float) rightSteps;
+  float speedLeft = 100 * scaler;
+  float accelerationLeft = 100 * scaler;
+  float speedRight = 100 / scaler;
+  float accelerationRight = 100 / scaler;
+  stepperLeft.setSpeedInStepsPerSecond(speedLeft);
+  stepperLeft.setAccelerationInStepsPerSecondPerSecond(speedRight);
+  stepperLeft.setupRelativeMoveInSteps(leftSteps);
 
 
   //
   // setup the motion for the Y motor
   //
-  stepperRight.setSpeedInStepsPerSecond(100);
-  stepperRight.setAccelerationInStepsPerSecondPerSecond(100);
-  stepperRight.setupRelativeMoveInSteps(int(200*rotations));
+  stepperRight.setSpeedInStepsPerSecond(speedRight);
+  stepperRight.setAccelerationInStepsPerSecondPerSecond(accelerationRight);
+  stepperRight.setupRelativeMoveInSteps(-rightSteps);
 
-  while(!stepperLeft.motionComplete())
+  while(!stepperLeft.motionComplete() && !stepperRight.motionComplete())
   {
     stepperLeft.processMovement();       // this call moves the motor
     stepperRight.processMovement();
